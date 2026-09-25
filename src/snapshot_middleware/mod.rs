@@ -73,8 +73,7 @@ pub fn snapshot_from_vfs(
     };
 
     if meta.is_dir() {
-        let (middleware, dir_name, init_path) =
-            get_dir_middleware(vfs, path, &context.sync_rules)?;
+        let (middleware, dir_name, init_path) = get_dir_middleware(vfs, path, &context.sync_rules)?;
         match middleware {
             Middleware::Dir => middleware.snapshot(context, vfs, path, dir_name),
             _ => middleware.snapshot_init(context, vfs, &init_path, dir_name),
