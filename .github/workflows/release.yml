@@ -4,6 +4,9 @@ on:
   push:
     tags: ["v*"]
 
+permissions:
+  contents: write
+
 jobs:
   create-release:
     name: Create Release
@@ -14,7 +17,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create ${{ github.ref_name }} --draft --verify-tag --title ${{ github.ref_name }}
+          gh release create ${{ github.ref_name }} --verify-tag --title ${{ github.ref_name }} --generate-notes
 
   build-plugin:
     needs: ["create-release"]
@@ -37,7 +40,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ github.ref_name }} Rojo.rbxm
+          gh release upload ${{ github.ref_name }} Rojo.rbxm --clobber
 
       - name: Upload Plugin to Artifacts
         uses: actions/upload-artifact@v4
@@ -46,6 +49,8 @@ jobs:
           path: Rojo.rbxm
       
       - name: Upload Plugin to Roblox
+        if: ${{ secrets.PLUGIN_UPLOAD_TOKEN != '' }}
+        continue-on-error: true
         env:
           RBX_API_KEY: ${{ secrets.PLUGIN_UPLOAD_TOKEN }}
           RBX_UNIVERSE_ID: ${{ vars.PLUGIN_CI_PLACE_ID }}
@@ -148,7 +153,7 @@ jobs:
             zip ../$ARTIFACT_NAME *
           fi
 
-          gh release upload ${{ github.ref_name }} ../$ARTIFACT_NAME
+          gh release upload ${{ github.ref_name }} ../$ARTIFACT_NAME --clobber
 
       - name: Upload Archive to Artifacts
         uses: actions/upload-artifact@v4
